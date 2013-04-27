@@ -41,13 +41,20 @@ def staging():
     env.environment = 'staging'
     env.project_path = "/srv/pootle-staging"
 
+
+@task
+def production():
+    """Work on the staging environment"""
+    env.environment = 'production'
+    env.project_path = "/srv/pootle-production"
+
 #
 # Main tasks
 #
 @task
-def bootstrap():
+def bootstrap(git_tag=None):
     """Set up a fresh instance ready to be further deployed and activated"""
-    require('environment', provided_by=[staging])
+    require('environment', provided_by=[staging, production])
     if (exists('%(project_path)s' % env)):
         print ('The staging environment already exists at %(project_path)s. Please clean it up manually and try again.'
             % env)
@@ -64,6 +71,11 @@ def bootstrap():
     
     # Download source
     sudo('git clone %(pootle_repository)s %(project_path)s/app' % env)
+    
+    # Check out the git tag
+    if git_tag:
+        with cd(os.path.join(env.project_path, 'app')):
+            sudo('git checkout '+ git_tag)    
 
     # Fetch/update all packages
     with prefix('source %(project_path)s/env/bin/activate' % env):
@@ -76,13 +88,13 @@ def bootstrap():
     
     # Create the log dir
     sudo('mkdir %(project_path)s/logs' % env)
-    sudo('chown wwwrun:www %(project_path)s/logs', env)
+    sudo('chown wwwrun:www %(project_path)s/logs' % env)
     
     print("The environment is prepared.")
 
 
 @task
-def deploy():
+def deploy(git_tag=None):
     """Updates the code and installs the configuration for apache"""
     require('environment', provided_by=[staging])
 
@@ -90,7 +102,10 @@ def deploy():
     
     # Update the code
     with cd(os.path.join(env.project_path, 'app')):
-        sudo('git pull')    
+        sudo('git fetch')   
+        if not git_tag:
+            git_tag = "HEAD"
+        sudo('git checkout '+ git_tag)
     
     # Update the configuration files
     put('virtualhost.conf', 
