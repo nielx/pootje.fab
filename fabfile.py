@@ -40,6 +40,7 @@ def staging():
     """Work on the staging environment"""
     env.environment = 'staging'
     env.project_path = "/srv/pootle-staging"
+    env.apache_server_name = "i18n-next.haiku-os.org"
 
 
 @task
@@ -47,6 +48,7 @@ def production():
     """Work on the staging environment"""
     env.environment = 'production'
     env.project_path = "/srv/pootle-production"
+    env.apache_server_name = "i18n.haiku-os.org"
 
 #
 # Main tasks
@@ -90,13 +92,17 @@ def bootstrap(git_tag=None):
     sudo('mkdir %(project_path)s/logs' % env)
     sudo('chown wwwrun:www %(project_path)s/logs' % env)
     
+    # Create the catalogs dir
+    sudo('mkdir %(project_path)s/catalogs' % env)
+    sudo('chown wwwrun:www %(project_path)s/catalogs' % env)
+    
     print("The environment is prepared.")
 
 
 @task
 def deploy(git_tag=None):
     """Updates the code and installs the configuration for apache"""
-    require('environment', provided_by=[staging])
+    require('environment', provided_by=[staging, production])
 
     print('Deploying the site...')
     
@@ -108,9 +114,9 @@ def deploy(git_tag=None):
         sudo('git checkout '+ git_tag)
     
     # Update the configuration files
-    put('virtualhost.conf', 
+    upload_template('virtualhost.conf', 
             '/etc/apache2/vhosts.d/i18n-%s.haiku-os.org.conf' % (env.environment,),
-            use_sudo=True)
+            context=env, use_sudo=True)
     
     sudo('cp /srv/pootle-settings/91-local-secrets-%(environment)s.conf %(project_path)s/app/pootle/settings/' % env)
     
@@ -118,7 +124,7 @@ def deploy(git_tag=None):
     upload_template('pootle.wsgi', env.project_path, context=env, use_sudo=True)
     
     # Configure and install settings
-    upload_template('settings-%(environment)s.conf' % env,
+    upload_template('settings.conf' % env,
                     os.path.join(env.project_path, 'app', 'pootle', 
                     'settings', '90-local.conf'),
                     use_sudo=True, context=env)
