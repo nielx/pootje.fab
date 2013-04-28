@@ -96,6 +96,9 @@ def bootstrap(git_tag=None):
     sudo('mkdir %(project_path)s/catalogs' % env)
     sudo('chown wwwrun:www %(project_path)s/catalogs' % env)
     
+    # Create the scripts dir
+    sudo('mkdir %(project_path)s/scripts' % env)
+    
     print("The environment is prepared.")
 
 
@@ -131,6 +134,17 @@ def deploy(git_tag=None):
     
     # Deploy static resources
     deploy_static()
+    
+    # Set up the scripts
+    scripts = ['scripts/fingerprint.py', 'scripts/finish_output_catalogs.py',
+              'scripts/import_language_catkeys.py',
+              'scripts/import_templates_from_haiku-files.py']
+    
+    for script in scripts:
+        put(script, "%(project_path)s/scripts/" % env, use_sudo=True)
+    upload_template('cron-script/update_translations', 
+                    '/etc/cron-scripts/update_translations_%(environment)s' % env,
+                    context=env, use_sudo=True)
     
     # install_site()
 
