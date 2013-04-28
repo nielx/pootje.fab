@@ -24,14 +24,14 @@ import sys
 for language in LANG:
     source_list = []
 
-    for root, dirs, files in os.walk(args['pootle_catalogs_dir']):
+    for root, dirs, files in os.walk(args.pootle_catalogs_dir):
         if language + '.catkeys' in files:
-            source_list.append(os.path.relpath(os.path.join(root, language + ".catkeys"), args['pootle_catalogs_dir']))
+            source_list.append(os.path.relpath(os.path.join(root, language + ".catkeys"), args.pootle_catalogs_dir))
 
     catalog_count = 0
     translated_count = 0
     for catalog in source_list:
-        f = open(os.path.join(args['pootle_catalogs_dir'], catalog), "r")
+        f = open(os.path.join(args.pootle_catalogs_dir, catalog), "r")
         lines = f.readlines()
     
         catalogentries = []
@@ -52,15 +52,15 @@ for language in LANG:
         calculated_fingerprint = computefingerprint(catalogentries)
         header = lines[0].rsplit('\t', 1)[0] + '\t' + str(calculated_fingerprint) + '\n'
 
-        if not os.path.isdir(os.path.split(os.path.join(args['repository_catalogs_dir'], catalog))[0]):
+        if not os.path.isdir(os.path.split(os.path.join(args.repository_catalogs_dir, catalog))[0]):
             print("WARNING: copying a catkeys file to non-existent target directory. Is this right?")
             print(catalog)
-            os.makedirs(os.path.split(os.path.join(args['repository_catalogs_dir'], catalog))[0])
+            os.makedirs(os.path.split(os.path.join(args.repository_catalogs_dir, catalog))[0])
     
 	# HACK: ICU uses zh_Hans insteald of zh-Hans
         if 'zh-Hans' in catalog:
             catalog = catalog.replace('zh-Hans', 'zh_Hans')
-        output_f = open(os.path.join(args['repository_catalogs_dir'], catalog), "w")
+        output_f = open(os.path.join(args.repository_catalogs_dir, catalog), "w")
         output_f.write(header)
         for entry in catalogentries:
             output_f.write("%s\t%s\t%s\t%s" % (entry[0], entry[1], entry[2], entry[3]))

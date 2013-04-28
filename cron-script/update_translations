@@ -4,7 +4,8 @@ REPOSITORY_DIR=/home/nielx/haiku-repository
 CATALOG_DIR=%(project_path)s/catalogs/haiku
 IMPORT_SCRIPT_PATH=%(project_path)s/scripts/import_templates_from_haiku-files.py
 FINISH_SCRIPT_PATH=%(project_path)s/scripts/finish_output_catalogs.py
-POOTLE_MANAGE_SCRIPT_PATH=%(project_path)s/pootle-svn/manage.py
+POOTLE_MANAGE_SCRIPT_PATH=%(project_path)s/app/manage.py
+PYTHON_EXECUTABLE=%(project_path)s/env/bin/python
 
 check_errors()
 {
@@ -18,17 +19,16 @@ check_errors()
 }
 
 cd $REPOSITORY_DIR
-sudo -u wwwrun python $IMPORT_SCRIPT_PATH $CATALOG_DIR
+sudo -u wwwrun $PYTHON_EXECUTABLE $IMPORT_SCRIPT_PATH $CATALOG_DIR
 check_errors $? "Error importing the new translations from the build factory"
-sudo -u wwwrun python $POOTLE_MANAGE_SCRIPT_PATH update_stores --language=en 
 check_errors $? "Error updating the English language catalogs"
-sudo -u wwwrun python $POOTLE_MANAGE_SCRIPT_PATH update_from_templates
+sudo -u wwwrun $PYTHON_EXECUTABLE $POOTLE_MANAGE_SCRIPT_PATH update_against_templates --project haiku
 check_errors $? "Error updating the language translations from the English templates"
-sudo -u wwwrun python $POOTLE_MANAGE_SCRIPT_PATH sync_stores
+sudo -u wwwrun $PYTHON_EXECUTABLE $POOTLE_MANAGE_SCRIPT_PATH sync_stores
 check_errors $? "Error writing the updated translations to files"
 sudo chmod -R a+r $CATALOG_DIR/* 
 check_errors $? "Error performing a chmod operation"
-sudo -u nielx python $FINISH_SCRIPT_PATH $CATALOG_DIR $REPOSITORY_DIR/data/catalogs/
+sudo -u nielx $PYTHON_EXECUTABLE $FINISH_SCRIPT_PATH $CATALOG_DIR $REPOSITORY_DIR/data/catalogs/
 check_errors $? "Error copying the updated translations to the git tree"
 sudo -u nielx git add -A
 sudo -u nielx git commit -m "Update translations from Pootle"

@@ -21,7 +21,7 @@ args = parser.parse_args()
 
 # utility function to copy a catkeys file
 def strip_and_save(path, input_data):
-    absolute_path = os.path.join(args['pootle_catalogs_dir'], path)
+    absolute_path = os.path.join(args.pootle_catalogs_dir, path)
     if not os.path.exists(os.path.split(absolute_path)[0]):
         os.makedirs(os.path.split(absolute_path)[0])
 
