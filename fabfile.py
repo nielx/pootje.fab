@@ -20,7 +20,9 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from fabric.api import env, sudo, put, run, task
+from fabric.colors import red
 from fabric.context_managers import cd, prefix
+from fabric.contrib.console import confirm
 from fabric.contrib.files import exists, upload_template
 from fabric.operations import require
 import os
@@ -189,3 +191,27 @@ def backup():
             (env["environment"], env["environment"], timestring))
     
     print("Done")
+    
+@task
+def copy_data_to_staging():
+    """Copy the production data to the staging environment"""
+    
+    if not exists('~/.pgpass'):
+        print("In order to perform these operations, you will need to store the password of the database in a .pgpass file")
+        print("See: http://www.postgresql.org/docs/current/static/libpq-pgpass.html")
+        print("You will need it for the pootle and the baron account")
+        return
+    
+    confirm("This will destroy all data of the staging environment. Do you want to continue?", default=False)
+
+    print(red("Deleting current data in staging"))
+    run("dropdb -U pootle pootle_staging", warn_only=True)
+    sudo("rm -rf /srv/pootle_staging/catalogs/*", user="wwwrun")
+    
+    print(red("Now copying data from production"))
+    run("createdb -U baron -O pootle pootle_staging")
+    run("pg_dump -U pootle pootle | psql -U pootle pootle_staging")
+    with cd('/srv/pootle-production/app' % env):
+        with prefix('source /srv/pootle-production/env/bin/activate' % env):
+            sudo('python manage.py sync_stores', user='wwwrun')
+    sudo("cp -R /srv/pootle-production/catalogs/* /srv/pootle-staging/catalogs/", user='wwwrun')
