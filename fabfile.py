@@ -120,9 +120,7 @@ def deploy(git_tag=None):
         sudo('git checkout '+ git_tag)
     
     # Update the configuration files
-    upload_template('virtualhost.conf', 
-            '/etc/apache2/vhosts.d/i18n-%s.haiku-os.org.conf' % (env.environment,),
-            context=env, use_sudo=True)
+    enable_environment()
     
     sudo('cp /srv/pootle-settings/91-local-secrets-%(environment)s.conf %(project_path)s/app/pootle/settings/' % env)
     
@@ -215,3 +213,30 @@ def copy_data_to_staging():
         with prefix('source /srv/pootle-production/env/bin/activate' % env):
             sudo('python manage.py sync_stores', user='wwwrun')
     sudo("cp -R /srv/pootle-production/catalogs/* /srv/pootle-staging/catalogs/", user='wwwrun')
+
+@task
+def disable_environment(destination_domain):
+    """Disable an environment and redirect to a URL"""
+    require('environment', provided_by=[staging, production])
+    
+    env.destination_domain = destination_domain
+    
+    # Update the configuration files
+    upload_template('virtualhost-disabled.conf', 
+            '/etc/apache2/vhosts.d/i18n-%s.haiku-os.org.conf' % (env.environment,),
+            context=env, use_sudo=True)
+    
+    sudo('/sbin/service apache2 reload')
+
+@task
+def enable_environment():
+    """Enable an environment"""
+    require('environment', provided_by=[staging, production])
+    
+    # Update the configuration files
+    upload_template('virtualhost.conf', 
+            '/etc/apache2/vhosts.d/i18n-%s.haiku-os.org.conf' % (env.environment,),
+            context=env, use_sudo=True)
+    
+    sudo('/sbin/service apache2 reload')
+    
