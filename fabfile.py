@@ -19,11 +19,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from fabric.api import env, sudo, put, task
+from fabric.api import env, sudo, put, run, task
 from fabric.context_managers import cd, prefix
 from fabric.contrib.files import exists, upload_template
 from fabric.operations import require
 import os
+import time
 
 #
 # Settings
@@ -151,7 +152,7 @@ def deploy(git_tag=None):
 @task
 def deploy_static():
     """Runs `collectstatic` to collect all the static files"""
-    require('environment', provided_by=[staging])
+    require('environment', provided_by=[staging, production])
 
     print('Collecting and building static files...')
 
@@ -160,3 +161,31 @@ def deploy_static():
             sudo('mkdir -p pootle/assets')
             sudo('python manage.py collectstatic --noinput --clear')
             sudo('python manage.py assets build')
+
+@task
+def backup():
+    """Make a backup of the project dir and the database in the home dir"""
+    require('environment', provided_by=[staging, production])
+    
+    if not exists('~/.pgpass'):
+        print("In order to make a backup you will need to put the password to the database in a .pgpass file")
+        print("See: http://www.postgresql.org/docs/current/static/libpq-pgpass.html")
+        print("You will need it for the pootle account")
+        return
+    
+    print('Synchronizing the catalogs to disk')
+    
+    with cd('%(project_path)s/app' % env):
+        with prefix('source %(project_path)s/env/bin/activate' % env):
+            sudo('python manage.py sync_stores', user='wwwrun')
+    
+    
+    timestring = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
+    
+    with cd('~'):
+        run("tar -cvjf pootle_%s_files_%s.tar.bz2 %s" % \
+            (env["environment"], timestring, env["project_path"]))
+        run("pg_dump -U pootle pootle_%s | bzip2 > pootle_%s_database_%s.bz2" % \
+            (env["environment"], env["environment"], timestring))
+    
+    print("Done")
