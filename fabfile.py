@@ -90,6 +90,9 @@ def bootstrap(git_tag=None):
         # does not install the psycopg2 package needed for PostgreSQL
         # connections
         sudo('pip install -U psycopg2')
+        
+        # Also pytz is missing
+        sudo('pip install -U pytz')
     
     # Create the log dir
     sudo('mkdir %(project_path)s/logs' % env)
