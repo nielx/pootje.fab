@@ -93,6 +93,10 @@ def bootstrap(git_tag=None):
         
         # Also pytz is missing
         sudo('pip install -U pytz')
+        
+        # Also install django-tastypie (version 0.9.16 works with Django 1.4)
+        sudo('pip install django-tastypie==0.9.16')
+        
     
     # Create the log dir
     sudo('mkdir %(project_path)s/logs' % env)
@@ -121,6 +125,21 @@ def deploy(git_tag=None):
         if not git_tag:
             git_tag = "HEAD"
         sudo('git checkout '+ git_tag)
+    
+    # Fetch/update all packages
+    with prefix('source %(project_path)s/env/bin/activate' % env):
+        sudo('pip install -r %(project_path)s/app/requirements/deploy.txt' 
+                % env)
+        # Future versions might change, but the current version of Pootle
+        # does not install the psycopg2 package needed for PostgreSQL
+        # connections
+        sudo('pip install -U psycopg2')
+        
+        # Also pytz is missing
+        sudo('pip install -U pytz')
+        
+        # Also install django-tastypie (version 0.9.16 works with Django 1.4)
+        sudo('pip install django-tastypie==0.9.16')
     
     # Update the configuration files
     enable_environment()
