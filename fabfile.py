@@ -76,28 +76,7 @@ def bootstrap(git_tag=None):
     
     # Download source
     sudo('git clone %(pootle_repository)s %(project_path)s/app' % env)
-    
-    # Check out the git tag
-    if git_tag:
-        with cd(os.path.join(env.project_path, 'app')):
-            sudo('git checkout '+ git_tag)    
-
-    # Fetch/update all packages
-    with prefix('source %(project_path)s/env/bin/activate' % env):
-        sudo('pip install -r %(project_path)s/app/requirements/deploy.txt' 
-                % env)
-        # Future versions might change, but the current version of Pootle
-        # does not install the psycopg2 package needed for PostgreSQL
-        # connections
-        sudo('pip install -U psycopg2')
         
-        # Also pytz is missing
-        sudo('pip install -U pytz')
-        
-        # Also install django-tastypie (version 0.9.16 works with Django 1.4)
-        sudo('pip install django-tastypie==0.9.16')
-        
-    
     # Create the log dir
     sudo('mkdir %(project_path)s/logs' % env)
     sudo('chown wwwrun:www %(project_path)s/logs' % env)
@@ -168,8 +147,12 @@ def deploy(git_tag=None):
     upload_template('cron-script/update_translations', 
                     '/etc/cron-scripts/update_translations_%(environment)s' % env,
                     context=env, use_sudo=True)
+
+    # setup/update the database
+    with cd('%(project_path)s/app' % env):
+        with prefix('source %(project_path)s/env/bin/activate' % env):
+            sudo('python manage.py setup')
     
-    # install_site()
 
 @task
 def deploy_static():
