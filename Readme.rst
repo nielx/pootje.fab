@@ -15,6 +15,19 @@ Bootstrapping is the creation of an entry into /srv and includes:
 To get from bootstrapping to running, use:
  * fab <staging/production> bootstrap
  * fab <staging/production> deploy
+ 
+Updating an existing installation
+---------------------------------
+
+In order to update an existing installation you need to run the following
+command: 
+
+ * fab <staging/production> deploy
+
+Additionally it is possible to add a tag to the deploy command. This tag pulls
+a specific revision from the Pootle repository. 
+
+ * fab <staging/production> deploy:TAG
 
 Scripts
 -------
