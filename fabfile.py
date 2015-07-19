@@ -183,6 +183,9 @@ def backup():
     with cd('%(project_path)s/app' % env):
         with prefix('source %(project_path)s/env/bin/activate' % env):
             sudo('python manage.py sync_stores', user='wwwrun')
+
+    with cd('%(project_path)s/catalogs' % env):
+        sudo('chmod -R a+r .')
     
     
     timestring = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
