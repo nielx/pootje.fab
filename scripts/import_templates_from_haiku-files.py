@@ -5,8 +5,8 @@ import sys
 import urllib2
 import zipfile
 
-CATKEYS_ARCHIVE_LOCATION = "http://www.haiku-files.org/catkeys.zip"
-CATKEYS_MD5_LOCATION     = "http://www.haiku-files.org/catkeys.zip.md5"
+CATKEYS_ARCHIVE_LOCATION = "https://i18n.haiku-os.org/catkeys.zip"
+CATKEYS_MD5_LOCATION     = "https://i18n.haiku-os.org/catkeys.zip.md5"
 
 import argparse
 parser = argparse.ArgumentParser(description='Import the newest catalogs from Haiku files and copy to Pootle')
