@@ -11,7 +11,7 @@ parser.add_argument('repository_catalogs_dir', metavar="output_catalogs",
 args = parser.parse_args()
 
 # The language code (without the catkeys extension)
-LANG = ['be', 'de', 'en_UK', 'eo', 'es', 'fi', 'fr', 'hr', 'hu', 'it', 'ja', 'lt', 'nl', 'pl', 'pt_BR', 'ro', 'ru', 'sl', 'sk', 'sv', 'uk', 'zh-Hans']
+LANG = ['be', 'de', 'en_GB', 'eo', 'es', 'fi', 'fr', 'hr', 'hu', 'it', 'ja', 'lt', 'nl', 'pl', 'pt_BR', 'ro', 'ru', 'sl', 'sk', 'sv', 'uk', 'zh-Hans']
 
 ############
 # Script
@@ -19,7 +19,6 @@ LANG = ['be', 'de', 'en_UK', 'eo', 'es', 'fi', 'fr', 'hr', 'hu', 'it', 'ja', 'lt
 
 from fingerprint import computefingerprint
 import os
-import sys
 
 for language in LANG:
     source_list = []
