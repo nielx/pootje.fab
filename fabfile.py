@@ -92,34 +92,29 @@ def bootstrap(git_tag=None):
 
 
 @task
-def deploy(git_tag=None):
+def deploy(git_tag):
     """Updates the code and installs the configuration for apache"""
     require('environment', provided_by=[staging, production])
+
+    try:
+        put('requirements/' + git_tag, "/tmp/requirements.txt")
+    except:
+        print(red("There is no support for this version of Pootle. Please provide a requirements file"))
+        return
 
     print('Deploying the site...')
     
     # Update the code
     with cd(os.path.join(env.project_path, 'app')):
         sudo('git fetch origin')
-        if not git_tag:
-            git_tag = "HEAD"
         sudo('git checkout '+ git_tag)
     
     # Fetch/update all packages
     with prefix('source %(project_path)s/env/bin/activate' % env):
         sudo('pip install -r %(project_path)s/app/requirements/deploy.txt' 
                 % env)
-        # Future versions might change, but the current version of Pootle
-        # does not install the psycopg2 package needed for PostgreSQL
-        # connections
-        sudo('pip install -U psycopg2')
-        
-        # Also pytz is missing
-        sudo('pip install -U pytz')
-        
-        # Also install django-tastypie (version 0.9.16 works with Django 1.4)
-        sudo('pip install django-tastypie==0.9.16')
-    
+        sudo('pip install -r /tmp/requirements.txt')
+
     # Update the configuration files
     enable_environment()
     
@@ -211,7 +206,7 @@ def copy_data_to_staging():
     confirm("This will destroy all data of the staging environment. Do you want to continue?", default=False)
 
     print(red("Deleting current data in staging"))
-    run("dropdb -U pootle_production pootle_staging", warn_only=True)
+    run("dropdb -U pootle pootle_staging", warn_only=True)
     sudo("rm -rf /srv/pootle_staging/catalogs/*", user="wwwrun")
     
     print(red("Now copying data from production"))
