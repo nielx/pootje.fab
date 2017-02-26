@@ -100,7 +100,7 @@ def deploy(git_tag=None):
     
     # Update the code
     with cd(os.path.join(env.project_path, 'app')):
-        sudo('git fetch')   
+        sudo('git fetch origin')
         if not git_tag:
             git_tag = "HEAD"
         sudo('git checkout '+ git_tag)
@@ -211,12 +211,12 @@ def copy_data_to_staging():
     confirm("This will destroy all data of the staging environment. Do you want to continue?", default=False)
 
     print(red("Deleting current data in staging"))
-    run("dropdb -U pootle pootle_staging", warn_only=True)
+    run("dropdb -U pootle_production pootle_staging", warn_only=True)
     sudo("rm -rf /srv/pootle_staging/catalogs/*", user="wwwrun")
     
     print(red("Now copying data from production"))
     run("createdb -U baron -O pootle pootle_staging")
-    run("pg_dump -U pootle pootle | psql -U pootle pootle_staging")
+    run("pg_dump -U pootle pootle_production | psql -U pootle pootle_staging")
     with cd('/srv/pootle-production/app' % env):
         with prefix('source /srv/pootle-production/env/bin/activate' % env):
             sudo('python manage.py sync_stores', user='wwwrun')
