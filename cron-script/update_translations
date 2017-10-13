@@ -21,6 +21,7 @@ check_errors()
 cd $REPOSITORY_DIR
 sudo -u wwwrun $PYTHON_EXECUTABLE $IMPORT_SCRIPT_PATH $CATALOG_DIR
 check_errors $? "Error importing the new translations from the build factory"
+sudo -u wwwrun python $POOTLE_MANAGE_SCRIPT_PATH update_stores --language=en
 check_errors $? "Error updating the English language catalogs"
 sudo -u wwwrun $PYTHON_EXECUTABLE $POOTLE_MANAGE_SCRIPT_PATH update_against_templates --project haiku
 check_errors $? "Error updating the language translations from the English templates"
