@@ -24,8 +24,7 @@ import sys
 
 ALLDIRS = [
     '%(project_path)s/env/lib/python2.7/site-packages',
-    '%(project_path)s/app',
-    os.path.join('%(project_path)s', 'app', 'pootle', 'apps')
+    '%(project_path)s/env/lib/python2.7/site-packages/pootle/apps',
 ]
 
 # Remember original sys.path.
@@ -47,6 +46,7 @@ sys.path[:0] = new_sys_path
 
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
+os.environ['POOTLE_SETTINGS'] = '%(project_path)s/settings/90-local.conf'
 
 import django.core.wsgi
 

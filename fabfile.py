@@ -121,9 +121,6 @@ def deploy(git_tag):
                     os.path.join(env.project_path, 'settings', '90-local.conf'),
                     use_sudo=True, context=env)
     
-    # Deploy static resources
-    # deploy_static()
-    
     # Set up the scripts
     scripts = ['scripts/fingerprint.py', 'scripts/finish_output_catalogs.py',
               'scripts/import_language_catkeys.py',
@@ -139,20 +136,7 @@ def deploy(git_tag):
     #with cd('%(project_path)s/app' % env):
     #    with prefix('source %(project_path)s/env/bin/activate' % env):
     #        sudo('python manage.py setup')
-    print("Deployment done. Run database modifications/scripts manually.")
-
-@task
-def deploy_static():
-    """Runs `collectstatic` to collect all the static files"""
-    require('environment', provided_by=[staging, production])
-
-    print('Collecting and building static files...')
-
-    with cd('%(project_path)s/app' % env):
-        with prefix('source %(project_path)s/env/bin/activate' % env):
-            sudo('mkdir -p pootle/assets')
-            sudo('python manage.py collectstatic --noinput --clear')
-            sudo('python manage.py assets build')
+    print("Deployment done. You now have to manually merge the secret settings into the settings file.")
 
 @task
 def backup():
