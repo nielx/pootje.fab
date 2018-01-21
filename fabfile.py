@@ -74,9 +74,6 @@ def bootstrap(git_tag=None):
     with prefix('source %(project_path)s/env/bin/activate' % env):
         sudo('easy_install pip' % env)
     
-    # Download source
-    sudo('git clone %(pootle_repository)s %(project_path)s/app' % env)
-        
     # Create the log dir
     sudo('mkdir %(project_path)s/logs' % env)
     sudo('chown wwwrun:www %(project_path)s/logs' % env)
@@ -87,6 +84,9 @@ def bootstrap(git_tag=None):
     
     # Create the scripts dir
     sudo('mkdir %(project_path)s/scripts' % env)
+
+    # Create the settings dir
+    sudo('mkdir %(project_path)s/settings' % env)
     
     print("The environment is prepared.")
 
@@ -104,33 +104,25 @@ def deploy(git_tag):
 
     print('Deploying the site...')
     
-    # Update the code
-    with cd(os.path.join(env.project_path, 'app')):
-        sudo('git fetch origin')
-        sudo('git checkout '+ git_tag)
-    
     # Fetch/update all packages
     with prefix('source %(project_path)s/env/bin/activate' % env):
-        sudo('pip install -r %(project_path)s/app/requirements/deploy.txt' 
-                % env)
         sudo('pip install -r /tmp/requirements.txt')
 
     # Update the configuration files
     enable_environment()
     
-    sudo('cp /srv/pootle-settings/91-local-secrets-%(environment)s.conf %(project_path)s/app/pootle/settings/' % env)
+    sudo('cp /srv/pootle-settings/91-local-secrets-%(environment)s.conf %(project_path)s/settings/' % env)
     
     # Configure WSGI application
     upload_template('pootle.wsgi', env.project_path, context=env, use_sudo=True)
     
     # Configure and install settings
     upload_template('settings.conf' % env,
-                    os.path.join(env.project_path, 'app', 'pootle', 
-                    'settings', '90-local.conf'),
+                    os.path.join(env.project_path, 'settings', '90-local.conf'),
                     use_sudo=True, context=env)
     
     # Deploy static resources
-    deploy_static()
+    # deploy_static()
     
     # Set up the scripts
     scripts = ['scripts/fingerprint.py', 'scripts/finish_output_catalogs.py',

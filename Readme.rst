@@ -4,6 +4,10 @@ Automation for deployment of Pootle on vmdev.haiku-os.org
 This repository contains the management tools to install and maintain Haiku's
 Pootle installation.
 
+The current tools work starting 2.7.6. For a previous version, checkout the tree
+with the `deployment-2.6.2` tag.
+
+
 Bootstrapping a new installation
 --------------------------------
 
