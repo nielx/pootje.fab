@@ -144,10 +144,10 @@ def deploy(git_tag):
                     context=env, use_sudo=True)
 
     # setup/update the database
-    with cd('%(project_path)s/app' % env):
-        with prefix('source %(project_path)s/env/bin/activate' % env):
-            sudo('python manage.py setup')
-    
+    #with cd('%(project_path)s/app' % env):
+    #    with prefix('source %(project_path)s/env/bin/activate' % env):
+    #        sudo('python manage.py setup')
+    print("Deployment done. Run database modifications/scripts manually.")
 
 @task
 def deploy_static():
@@ -210,7 +210,7 @@ def copy_data_to_staging():
     sudo("rm -rf /srv/pootle_staging/catalogs/*", user="wwwrun")
     
     print(red("Now copying data from production"))
-    run("createdb -U baron -O pootle pootle_staging")
+    run("createdb -U postgres -O pootle pootle_staging")
     run("pg_dump -U pootle pootle_production | psql -U pootle pootle_staging")
     with cd('/srv/pootle-production/app' % env):
         with prefix('source /srv/pootle-production/env/bin/activate' % env):
