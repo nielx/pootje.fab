@@ -133,7 +133,7 @@ def deploy(git_tag):
                     context=env, use_sudo=True)
 
     # Set up the systemd service
-    upload_template('pootle.service', '/etc/systemd/system/pootle-%(environment)s' % env,
+    upload_template('pootle.service', '/etc/systemd/system/pootle-%(environment)s.service' % env,
                     context=env, use_sudo=True)
 
     # setup/update the database
