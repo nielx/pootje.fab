@@ -4,8 +4,11 @@ REPOSITORY_DIR=/home/nielx/haiku-repository
 CATALOG_DIR=%(project_path)s/catalogs/haiku
 IMPORT_SCRIPT_PATH=%(project_path)s/scripts/import_templates_from_haiku-files.py
 FINISH_SCRIPT_PATH=%(project_path)s/scripts/finish_output_catalogs.py
-POOTLE_MANAGE_SCRIPT_PATH=%(project_path)s/app/manage.py
+POOTLE_COMMAND_PATH=%(project_path)s/env/bin/pootle
+POOTLE_CONFIGURATION_PATH=%(project_path)s/settings/90-local.conf
+POT2PO_COMMAND_PATH=%(project_path)s/env/bin/pot2po
 PYTHON_EXECUTABLE=%(project_path)s/env/bin/python
+
 
 check_errors()
 {
@@ -19,15 +22,21 @@ check_errors()
 }
 
 cd $REPOSITORY_DIR
-sudo -u wwwrun $PYTHON_EXECUTABLE $IMPORT_SCRIPT_PATH $CATALOG_DIR
-check_errors $? "Error importing the new translations from the build factory"
-sudo -u wwwrun python $POOTLE_MANAGE_SCRIPT_PATH update_stores --language=en
-check_errors $? "Error updating the English language catalogs"
-sudo -u wwwrun $PYTHON_EXECUTABLE $POOTLE_MANAGE_SCRIPT_PATH update_against_templates --project haiku
-check_errors $? "Error updating the language translations from the English templates"
-sudo -u wwwrun $PYTHON_EXECUTABLE $POOTLE_MANAGE_SCRIPT_PATH sync_stores
-check_errors $? "Error writing the updated translations to files"
-sudo chmod -R a+r $CATALOG_DIR/* 
+
+# 1 sync database to disk
+sudo -u wwwrun $POOTLE_COMMAND_PATH --config $POOTLE_CONFIGURATION_PATH sync_stores
+check_errors $? "Error writing the current catalogs to disk"
+
+# 2 download templates and merge
+sudo -u wwwrun $PYTHON_EXECUTABLE $IMPORT_SCRIPT_PATH --pot2po $POT2PO_COMMAND_PATH $CATALOG_DIR
+check_errors $? "Error importing the new translations from the build factory and merging them to the translated files"
+
+# 3 load the translated files into Pootle
+sudo -u wwwrun $POOTLE_COMMAND_PATH --config $POOTLE_CONFIGURATION_PATH update_stores
+check_errors $? "Error importing the catalogs into pootle"
+
+# 4 export the translated files to git
+sudo chmod -R a+r $CATALOG_DIR/*
 check_errors $? "Error performing a chmod operation"
 sudo -u nielx $PYTHON_EXECUTABLE $FINISH_SCRIPT_PATH $CATALOG_DIR $REPOSITORY_DIR/data/catalogs/
 check_errors $? "Error copying the updated translations to the git tree"
