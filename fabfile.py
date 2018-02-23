@@ -132,11 +132,18 @@ def deploy(git_tag):
                     '/etc/cron-scripts/update_translations_%(environment)s' % env,
                     context=env, use_sudo=True)
 
+    # Set up the systemd service
+    upload_template('pootle.service', '/etc/systemd/system/pootle-%(environment)s' % env,
+                    context=env, use_sudo=True)
+
     # setup/update the database
     #with cd('%(project_path)s/app' % env):
     #    with prefix('source %(project_path)s/env/bin/activate' % env):
     #        sudo('python manage.py setup')
-    print("Deployment done. You now have to manually merge the secret settings into the settings file.")
+    print("""Deployment done. Do the following:
+    - Update the database
+    - Merge the secret settings into the settings file.
+    - Activate the systemd rqworker""")
 
 @task
 def backup():

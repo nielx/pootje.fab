@@ -1,0 +1,11 @@
+[Unit]
+Description=RQWorker for Pootle Staging
+
+[Service]
+Type=simple
+User=wwwrun
+ExecStart=/srv/pootle-staging/env/bin/pootle --config /srv/pootle-staging/settings/90-local.conf rqworker
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
